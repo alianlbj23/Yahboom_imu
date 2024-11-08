@@ -7,6 +7,7 @@ import threading
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
+from sensor_msgs.msg import MagneticField
 
 key = 0
 flag = 0
@@ -136,9 +137,11 @@ class IMUDriverNode(Node):
         # 初始化IMU消息
         self.imu_msg = Imu()
         self.imu_msg.header.frame_id = 'imu_link'
-
+        self.mag_msg = MagneticField()
+        self.mag_msg.header.frame_id = 'imu_link'
         # 创建IMU数据发布器
         self.imu_pub = self.create_publisher(Imu, 'imu/data_raw', 10)
+        self.mag_pub = self.create_publisher(MagneticField, 'imu/mag', 10)
         #self.port = self.get_parameter('port')
         #self.baud_rate = self.get_parameter('baud')
 
@@ -215,8 +218,15 @@ class IMUDriverNode(Node):
         self.imu_msg.orientation.z = qua[2]
         self.imu_msg.orientation.w = qua[3]
 
+        # 更新磁力計消息
+        self.mag_msg.header.stamp = self.get_clock().now().to_msg()
+        self.mag_msg.magnetic_field.x = float(magnetometer[0])
+        self.mag_msg.magnetic_field.y = float(magnetometer[1])
+        self.mag_msg.magnetic_field.z = float(magnetometer[2])
+
         # 发布IMU消息
         self.imu_pub.publish(self.imu_msg)
+        self.mag_pub.publish(self.mag_msg)
 
     def compute_orientation(self, wx, wy, wz, ax, ay, az, dt):
         # 计算旋转矩阵

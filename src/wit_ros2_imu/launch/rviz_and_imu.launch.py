@@ -21,6 +21,6 @@ def generate_launch_description():
     return LaunchDescription(
         [
             rviz_and_imu_node,
-            rviz_display_node
+            # rviz_display_node
         ]
     )
